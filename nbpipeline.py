@@ -1,26 +1,60 @@
-from ipywidgets import interact, FloatSlider, Text, Dropdown
+from ipywidgets import interact, FloatSlider, Text, Dropdown, fixed
 import pickle, os
-from functools import partial
 
 
-def setstate(obj, dest):
-    with open(dest, 'rw') as pkl:
-        objorig = pickle.load(pkl)
+def save(obj, label):
+    """ Save or update obj as pkl file with name label """
 
+    # initialize hidden state directory
+    if not os.path.exists('.nbpipeline'): os.mkdir('.nbpipeline')
+
+    # read obj, if it exists
+    objloc = '.nbpipeline/{0}'.format(label)
+    if os.path.exists(objloc):
+        with open(objloc, 'r') as pkl:
+            objorig = pickle.load(pkl)
+
+        # if obj is different from saved obj, then update saved obj
         if objorig != obj:
+            with open(objloc, 'w') as pkl:
+                pickle.dump(obj, pkl)
+
+    # if obj file not there, initialize it
+    else:
+        with open(objloc, 'w') as pkl:
             pickle.dump(obj, pkl)
 
 
-def getstate(dest):
-    obj = pickle.load(open(dest, 'r')) if os.path.exists(dest) else None
+def read(label):
+    """ Read obj with give label from hidden state directory """
+
+    objloc = '.nbpipeline/{0}'.format(label)
+    if os.path.exists(objloc):
+        obj = pickle.load(open(objloc, 'r')) 
+    else:
+        obj = None
+
+    return obj
 
 
-def stringstate(dest, description='Add Comment'):
-    obj = getstate(dest)
-    if not obj: obj = ''
+def setText(label, description='Set Text'):
+    """ Set text in a notebook pipeline (via interaction or with nbconvert) """
 
-    textc = Text(value=obj, description=description)
-    setdest = partial(setstate, dest=dest)
-    setdest.__name__ = 'setdest'
+    obj = read(label)
 
-    hndl = interact(setdest, obj=textc, __manual=True)
+    textw = Text(value=obj, description=description)
+    hndl = interact(save, obj=textw, label=fixed(label), __manual=True)
+
+
+def setFloat(label, min=0, max=20, description='Set Float'):
+    """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+
+    obj = read(label)
+    floatw = FloatSlider(value=obj, min=min, max=max)
+
+
+def setDropdown(label, options=[], description='Set Dropdown'):
+    """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+
+    obj = read(label)
+    sizespecw = Dropdown(value=obj, options=options, description=description)
