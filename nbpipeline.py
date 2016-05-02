@@ -37,24 +37,29 @@ def read(label):
     return obj
 
 
-def setText(label, description='Set Text'):
+def setText(label, default=None, description='Set Text'):
     """ Set text in a notebook pipeline (via interaction or with nbconvert) """
 
     obj = read(label)
+    if not read: obj=default
 
     textw = Text(value=obj, description=description)
     hndl = interact(save, obj=textw, label=fixed(label), __manual=True)
 
 
-def setFloat(label, min=0, max=20, description='Set Float'):
+def setFloat(label, default=10, min=0, max=20, description='Set Float'):
     """ Set float in a notebook pipeline (via interaction or with nbconvert) """
 
     obj = read(label)
+    if not obj: obj=default
+
     floatw = FloatSlider(value=obj, min=min, max=max)
 
 
-def setDropdown(label, options=[], description='Set Dropdown'):
+def setDropdown(label, default=None, options=[], description='Set Dropdown'):
     """ Set float in a notebook pipeline (via interaction or with nbconvert) """
 
     obj = read(label)
+    if not obj: obj=default
+
     sizespecw = Dropdown(value=obj, options=options, description=description)
