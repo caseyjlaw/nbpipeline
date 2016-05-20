@@ -6,7 +6,15 @@ Jupyter notebooks are a good way to document output from pipeline data analysis,
 `nbpipeline` is designed to allow groups to interact with notebooks while maintaining state between different (Python) kernel sessions. Multiple users may execute the notebook, modify pipeline parameters via the widgets, and update visualizations. State is saved in a directory on the file system. They can be saved in either text of pickle format.
 
 ## Using
-To use this, create a "base" notebook that functions like a pipeline script. Visualizations may be embedded, if one wishes the notebook to be a documented pipeline work flow or the notebook may produce secondary products outside the notebook. The base notebook can use the `nbpipeline` state object to create widgets as input to the pipeline and save their state. Default values are defined for all widgets, so the notebook can also be executed with nbconvert into ipynb or html or other formats.
+To use this, create a "base" notebook that functions like a pipeline script. Visualizations may be embedded, if one wishes the notebook to be a documented pipeline work flow or the notebook may produce secondary products outside the notebook. The base notebook can use the `nbpipeline` state object to create widgets as input to the pipeline and save their state. Instantiate the state as in this (pre-defined) example:
+
+    > state = nbpipeline.state('notebook.ipynb-state')
+    > state.objects
+    ['ignorestr', 'threshold']
+
+Widgets are available for interactive input without needing to know the pipeline syntax. Default values are defined for all widgets, so the notebook can also be executed with nbconvert into ipynb or html or other formats.
+
+![Use widgets for interactive input](input_example.png)
 
 ## Goals
 - allow nbconvert to compile a notebook.
