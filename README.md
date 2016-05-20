@@ -1,20 +1,10 @@
 # nbpipeline: Stateful notebooks with interaction
 
-nbpipeline provides some simple features for using Jupyter notebooks for pipeline data analysis.
-It was designed to allow multiple users to have multiple ways of using or interacting with a pipeline notebook.
-nbpipeline assumes that a "base" notebook has been created that encompasses stages of a pipeline analysis
-as cells to be executed. Visualizations may be embedded in the notebook to create a notebook-as-data-product,
-or the notebook may produce secondary products outside the notebook.
+Jupyter notebooks are a good way to document output from pipeline data analysis. The notebook can produce products or can hold visualizations to become a data product itself. In my pipelined analysis, there are batches of processing that might fall in either the nominal or interesting group (with maybe a 90%/10% split). How does one share the work of inspecting the 10% of cases that are interesting?
 
-While nbconvert can execute notebooks, I found a gap in my use case when I wanted to share notebooks
-to allow collaborators a chance to interact with pipeline output. In some cases, collaborators wanted to
-modify pipeline parameters and update visualizations. 
+`nbpipeline` is designed to allow groups to interact with notebooks by preserving (Python) state for a notebook pipeline. This assumes that a "base" notebook has been created that functions like a pipeline script. Visualizations may be embedded, if one wishes the notebook to be a documented pipeline work flow or the notebook may produce secondary products outside the notebook. Multiple users may execute the notebook, modify pipeline parameters as ipywidgets, and update visualizations. 
 
-Managing a distributed collaboration required saving some state of the processing.
-nbpipeline provides a way to preserve the state of processing (for Python kernel users). The state (e.g., a
-parameter of the pipeline) can have a default defined or may be defined via interactive widgets (via ipywidgets),
-which allows nbconvert to run automatically, but also provides for interaction after that.
-
-A simple example script is provided to compile a base notebook and convert it to html. The ipynb version 
-can be served by Jupyter to use widgets and interact, while the html is a static view of the default pipeline output.
-
+Goals:
+- allow nbconvert to compile a notebook, but also provides for interaction after that.
+- use widgets for simple interaction for people unfamiliar with Jupyter.
+- provides a simple example script to compile a base notebook and convert it to html.
