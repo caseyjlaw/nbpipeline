@@ -1,23 +1,29 @@
 #!/usr/bin/env python
 
-# Quick script to compile all jupyter notebooks for realfast
-# baseinteract.ipynb notebook designed to compile without interaction, but 
-# also has interact mode for refined analysis
+# Example of command-line executable to compile a jupyter notebook
+# nbpipeline model allows a base.ipynb (a pipeline script in ipynb format)
+# to be compiled into a data product as ipynb and html.
+# nbpipeline state object also allows for distributed interaction by saving state.
 
 from sys import argv
 import os
 from subprocess import call
 
-directory = argv[1].rstrip('/')
-os.environ['sdmdir'] = directory
+# define variable to be passed to notebook (which retrieves it from os.environ)
+filename = argv[1]
+os.environ['filename'] = filename
 
-print('Running on {0}'.format(directory))
-if os.path.exists(directory):
-    cmd = 'jupyter nbconvert baseinteract.ipynb --output {0}/{0}.ipynb --to notebook --execute --allow-errors --ExecutePreprocessor.timeout=3600'.format(directory).split(' ')
-    print('Running nbconvert...')
-    status = call(cmd)
+print('Compiling notebook for {0}'.format(filename))
+cmd = 'jupyter nbconvert base.ipynb --output {0}.ipynb --to notebook --execute --allow-errors --ExecutePreprocessor.timeout=3600'.format(filename).split(' ')
+status = call(cmd)
 
-    cmd = 'jupyter trust {0}/{0}.ipynb'.format(directory).split(' ')
-    status = call(cmd)
-    print('Done with {0}'.format(directory))
+# trust notebook to allow it run embedded js (like some bokeh plots)
+cmd = 'jupyter trust {0}.ipynb'.format(filename).split(' ')
+status = call(cmd)
+
+# convert to html for quick look without interaction
+cmd = 'jupyter nbconvert {0}.ipynb --to html --output {0}.html'.format(fileroot).split(' ')
+status = call(cmd)
+
+print('Finished compiling notebook for {0}'.format(filename))
 

@@ -1,74 +1,99 @@
-from ipywidgets import interact, FloatSlider, Text, Dropdown, fixed
+from ipywidgets import interact, FloatSlider, Text, Dropdown, Output, VBox, fixed
 import pickle, os
-from rtpipe import interactive
+from IPython.display import display, Javascript
+
+class state:
+    """ Jupyter notebook state attached to notebook name.
+    Useful when running programatically and interactively and need to save parameters for next user.
+    """
+
+    def __init__(self, statedir):
+        """ Initialize with directory to save state as files """
+
+        self.statedir = statedir
+
+        if not os.path.exists(self.statedir): os.mkdir(self.statedir)
 
 
-def save(obj, label):
-    """ Save or update obj as pkl file with name label """
-
-    # initialize hidden state directory
-    if not os.path.exists('.nbpipeline'): os.mkdir('.nbpipeline')
-
-    # read obj, if it exists
-    objloc = '.nbpipeline/{0}'.format(label)
-    if os.path.exists(objloc):
-        with open(objloc, 'r') as pkl:
-            objorig = pickle.load(pkl)
-
-        # if obj is different from saved obj, then update saved obj
-        if objorig != obj:
-            with open(objloc, 'w') as pkl:
-                pickle.dump(obj, pkl)
-
-    # if obj file not there, initialize it
-    else:
-        with open(objloc, 'w') as pkl:
-            pickle.dump(obj, pkl)
+    @property
+    def objects(self):
+        """ List names of stored objects """
+        return os.listdir(self.statedir)
 
 
-def read(label):
-    """ Read obj with give label from hidden state directory """
+    def save(self, obj, label, format='text'):
+        """ Save or update obj as pkl file with name label 
 
-    objloc = '.nbpipeline/{0}'.format(label)
-    if os.path.exists(objloc):
-        obj = pickle.load(open(objloc, 'r')) 
-    else:
-        obj = None
+        format can be 'text' or 'pickle'.
+        """
 
-    return obj
+        # initialize hidden state directory
 
+        objloc = '{0}/{1}'.format(self.statedir, label)
 
-def list():
-    """ List names of stored objects """
-
-    print(os.listdir('.nbpipeline/'))
-
-
-def setText(label, default='', description='Set Text'):
-    """ Set text in a notebook pipeline (via interaction or with nbconvert) """
-
-    obj = read(label)
-    if not obj: obj=default
-
-    textw = Text(value=obj, description=description)
-    hndl = interact(save, obj=textw, label=fixed(label), __manual=True)
+        with open(objloc, 'w') as fp:
+            if format == 'pickle':
+                pickle.dump(obj, fp)
+            elif format == 'text':
+                fp.write(str(obj))
 
 
-def setFloat(label, default=0, min=-20, max=20, description='Set Float'):
-    """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+    def load(self, label):
+        """ Load obj with give label from hidden state directory """
 
-    obj = read(label)
-    if not obj: obj=default
+        objloc = '{0}/{1}'.format(self.statedir, label)
 
-    floatw = FloatSlider(value=obj, min=min, max=max, description=description)
-    hndl = interact(save, obj=floatw, label=fixed(label), __manual=True)    
+        try:
+            obj = pickle.load(open(objloc, 'r')) 
+        except (KeyError, IndexError, EOFError):
+            obj = open(objloc, 'r').read()
+            try:
+                obj = float(obj)
+            except ValueError:
+                pass
+        except IOError:
+            obj = None
+
+        return obj
 
 
-def setDropdown(label, default=None, options=[], description='Set Dropdown'):
-    """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+    def setText(self, label, default='', description='Set Text', format='text'):
+        """ Set text in a notebook pipeline (via interaction or with nbconvert) """
 
-    obj = read(label)
-    if not obj: obj=default
+        obj = self.load(label)
+        if obj == None:
+            obj=default
+            self.save(obj, label)  # initialize with default
 
-    dropdownw = Dropdown(value=obj, options=options, description=description)
-    hndl = interact(save, obj=dropdownw, label=fixed(label), __manual=True)    
+        textw = Text(value=obj, description=description)
+        hndl = interact(self.save, obj=textw, label=fixed(label), format=fixed(format))
+
+
+    def setFloat(self, label, default=0, min=-20, max=20, description='Set Float', format='text'):
+        """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+
+        obj = self.load(label)
+        if obj == None:
+            obj=default
+            self.save(obj, label)  # initialize with default
+
+        floatw = FloatSlider(value=obj, min=min, max=max, description=description)
+        hndl = interact(self.save, obj=floatw, label=fixed(label), format=fixed(format))
+
+
+    def setDropdown(self, label, default=None, options=[], description='Set Dropdown', format='text'):
+        """ Set float in a notebook pipeline (via interaction or with nbconvert) """
+
+        obj = self.load(label)
+        if obj == None:
+            obj=default
+            self.save(obj, label)  # initialize with default
+
+        dropdownw = Dropdown(value=obj, options=options, description=description)
+        hndl = interact(self.save, obj=dropdownw, label=fixed(label), format=fixed(format))
+
+
+def getnbname():
+    """ Hack to get name of notebook as python obj 'nbname'. Does not work with 'run all' """
+
+    display(Javascript("""IPython.notebook.kernel.execute("nbname = " + "\'"+IPython.notebook.notebook_name+"\'");"""))    
